@@ -1,0 +1,760 @@
+import java.awt.*;
+import java.awt.event.*;
+import java.util.Random;
+import javax.swing.*;
+import javax.swing.border.Border;
+
+/**
+*
+* @author inferjus
+*/
+
+public class TicTacToe implements Runnable
+{
+	private JFrame frame=new JFrame("Tic Tac Toe");
+	private JButton ticTacToeButtons[][]=new JButton[3][3];
+	private JButton refreshButton=new JButton(" Refresh ");
+	private JButton resetButton=new JButton(" Reset " );
+	private JToggleButton resetSwitch=new JToggleButton(" Reset is OFF ");
+	private boolean crossOrNought;
+	private boolean victory=false;
+	private byte round=0;
+	private JLabel roundInfo;
+	private JLabel scoreInfo;
+	private short fontSize;
+	private Color xBackColour;
+	private Color oBackColour;
+	private Color xFrontColour;
+	private Color oFrontColour;
+	private int xWins=0;
+	private int oWins=0;
+	private Border smallBorder=BorderFactory.createLineBorder(Color.BLACK,3);
+	private Border bigBorder=BorderFactory.createLineBorder(Color.BLACK,10);
+
+	public static void main(String[] args)
+	{
+		SwingUtilities.invokeLater(new TicTacToe());
+	}
+	
+	@Override
+	public void run()
+	{
+		JTabbedPane tabbedPane=new JTabbedPane();
+		
+		JPanel gameAndInfo=new JPanel();
+		gameAndInfo.setLayout(new BorderLayout());
+		gameAndInfo.add(roundInfoArea(), BorderLayout.SOUTH);
+		gameAndInfo.add(gameControlBoard(), BorderLayout.NORTH);
+		gameAndInfo.add(gameBoard(), BorderLayout.CENTER);
+		
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setSize(640,480);
+		frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+		frame.add(tabbedPane);
+		
+		fontSize=(short)(frame.getHeight()/10);
+		roundInfo.setFont(new Font("Monospaced", Font.BOLD, fontSize)); //Rockwell
+		scoreInfo.setFont(new Font("Monospaced", Font.BOLD, fontSize));
+		
+		tabbedPane.add(gameAndInfo, " Game ");
+		tabbedPane.add(options(), " Options ");
+		
+		setUpRefreshButton();
+		setUpResetButton();
+				
+		frame.setVisible(true);
+	}
+	
+	TicTacToe()
+	{
+		crossOrNought=new Random().nextBoolean();
+		setUpTTTButtons();
+	}
+	
+	private JPanel gameControlBoard()
+	{
+		JPanel panel=new JPanel();
+		panel.setLayout(new BorderLayout());
+		scoreInfoArea();
+		panel.add(scoreInfo, BorderLayout.CENTER);
+		panel.add(refreshButton, BorderLayout.EAST);
+		panel.add(resetButton, BorderLayout.WEST);
+		
+		return panel;
+	}
+	
+	private JPanel gameBoard()
+	{
+		JPanel panel=new JPanel();		
+		panel.setLayout(new GridLayout(3,3,10,10));
+		
+		for (byte i=0; i<3; i++)
+		{
+			for (byte j=0; j<3; j++)
+			{
+				panel.add(ticTacToeButtons[i][j]);
+			}
+		}
+				
+		return panel;
+	}
+	
+	private JPanel options()
+	{
+		JPanel oBackPanel=new JPanel(new GridLayout(4,3,2,2));
+		JPanel xBackPanel=new JPanel(new GridLayout(4,3,2,2));
+		JPanel oFrontPanel=new JPanel(new GridLayout(4,3,2,2));
+		JPanel xFrontPanel=new JPanel(new GridLayout(4,3,2,2));
+		
+		oBackPanel.setBorder(bigBorder);
+		xBackPanel.setBorder(bigBorder);
+		oFrontPanel.setBorder(bigBorder);
+		xFrontPanel.setBorder(bigBorder);
+		
+		oBackPanel.setBackground(Color.WHITE);
+		xBackPanel.setBackground(Color.WHITE);
+		oFrontPanel.setBackground(Color.WHITE);
+		xFrontPanel.setBackground(Color.WHITE);
+		
+		JPanel mainOBackPanel=new JPanel(new BorderLayout());
+		JPanel mainXBackPanel=new JPanel(new BorderLayout());
+		JPanel mainOFrontPanel=new JPanel(new BorderLayout());
+		JPanel mainXFrontPanel=new JPanel(new BorderLayout());
+		
+		mainOBackPanel.add(oBackPanel, BorderLayout.CENTER);
+		mainXBackPanel.add(xBackPanel, BorderLayout.CENTER);
+		mainOFrontPanel.add(oFrontPanel, BorderLayout.CENTER);
+		mainXFrontPanel.add(xFrontPanel, BorderLayout.CENTER);
+		
+		JLabel oBack=new JLabel("O background colour");
+			oBack.setFont(new Font("Rockwell", Font.BOLD, fontSize/2));
+			oBack.setHorizontalAlignment(JLabel.CENTER);
+			oBack.setOpaque(true);
+			oBack.setBackground(Color.BLACK);
+			oBack.setForeground(Color.WHITE);
+		JLabel xBack=new JLabel("X background colour");
+			xBack.setFont(new Font("Rockwell", Font.BOLD, fontSize/2));
+			xBack.setHorizontalAlignment(JLabel.CENTER);
+			xBack.setOpaque(true);
+			xBack.setBackground(Color.BLACK);
+			xBack.setForeground(Color.WHITE);
+		JLabel oFront=new JLabel("O foreground colour");
+			oFront.setFont(new Font("Rockwell", Font.BOLD, fontSize/2));
+			oFront.setHorizontalAlignment(JLabel.CENTER);
+			oFront.setOpaque(true);
+			oFront.setBackground(Color.BLACK);
+			oFront.setForeground(Color.WHITE);
+		JLabel xFront=new JLabel("X foreground colour");
+			xFront.setFont(new Font("Rockwell", Font.BOLD, fontSize/2));
+			xFront.setHorizontalAlignment(JLabel.CENTER);
+			xFront.setOpaque(true);
+			xFront.setBackground(Color.BLACK);
+			xFront.setForeground(Color.WHITE);
+		
+		mainOBackPanel.add(oBack, BorderLayout.NORTH);
+		mainXBackPanel.add(xBack, BorderLayout.NORTH);
+		mainOFrontPanel.add(oFront, BorderLayout.NORTH);
+		mainXFrontPanel.add(xFront, BorderLayout.NORTH);
+		
+		JPanel panel=new JPanel();
+		panel.setLayout(new GridLayout(2,2,10,10));
+		
+		panel.add(mainOBackPanel);
+		panel.add(mainXBackPanel);
+		panel.add(mainOFrontPanel);
+		panel.add(mainXFrontPanel);
+		
+		panel.setBackground(Color.WHITE);
+		
+		ButtonGroup group1=new ButtonGroup();
+		ButtonGroup group2=new ButtonGroup();
+		ButtonGroup group3=new ButtonGroup();
+		ButtonGroup group4=new ButtonGroup();
+		
+		for (byte i=1; i<=12; i++)
+		{			
+			JRadioButton button1=new JRadioButton(Byte.toString((byte)(i)));
+			button1.addActionListener(new OBackButtonActionListener());
+			JRadioButton button2=new JRadioButton(Byte.toString((byte)(i)));
+			button2.addActionListener(new XBackButtonActionListener());
+			JRadioButton button3=new JRadioButton(Byte.toString((byte)(i)));
+			button3.addActionListener(new OFrontButtonActionListener());
+			JRadioButton button4=new JRadioButton(Byte.toString((byte)(i)));
+			button4.addActionListener(new XFrontButtonActionListener());
+			
+			button1.setFont(new Font("Rockwell", Font.BOLD, fontSize/3));
+			button2.setFont(new Font("Rockwell", Font.BOLD, fontSize/3));
+			button3.setFont(new Font("Rockwell", Font.BOLD, fontSize/3));
+			button4.setFont(new Font("Rockwell", Font.BOLD, fontSize/3));
+			
+			group1.add(button1);
+			group2.add(button2);
+			group3.add(button3);
+			group4.add(button4);
+			
+			switch (i)
+			{
+				case (1):
+					button1.setBackground(Color.BLACK);
+					button2.setBackground(Color.BLACK);
+					button3.setBackground(Color.BLACK);
+					button4.setBackground(Color.BLACK);
+					
+					button1.setText("Black");
+					button1.setForeground(Color.WHITE);
+					button2.setText("Black");
+					button2.setForeground(Color.WHITE);
+					button3.setText("Black");
+					button3.setForeground(Color.WHITE);
+					button4.setText("Black");
+					button4.setForeground(Color.WHITE);
+										
+					button1.setSelected(true);
+					button1.doClick();
+					button4.setSelected(true);
+					button4.doClick();
+				break;
+				case (2):
+					button1.setBackground(Color.DARK_GRAY);
+					button2.setBackground(Color.DARK_GRAY);
+					button3.setBackground(Color.DARK_GRAY);
+					button4.setBackground(Color.DARK_GRAY);		
+										
+					button1.setText("Dark gray");
+					button1.setForeground(Color.WHITE);
+					button2.setText("Dark gray");
+					button2.setForeground(Color.WHITE);
+					button3.setText("Dark gray");
+					button3.setForeground(Color.WHITE);
+					button4.setText("Dark gray");
+					button4.setForeground(Color.WHITE);
+				break;
+				case (3):
+					button1.setBackground(Color.GRAY);
+					button2.setBackground(Color.GRAY);
+					button3.setBackground(Color.GRAY);
+					button4.setBackground(Color.GRAY);	
+					
+					button1.setText("Gray");
+					button1.setForeground(Color.BLACK);
+					button2.setText("Gray");
+					button2.setForeground(Color.BLACK);
+					button3.setText("Gray");
+					button3.setForeground(Color.BLACK);
+					button4.setText("Gray");
+					button4.setForeground(Color.BLACK);
+				break;
+				case (4):
+					button1.setBackground(Color.LIGHT_GRAY);
+					button2.setBackground(Color.LIGHT_GRAY);
+					button3.setBackground(Color.LIGHT_GRAY);
+					button4.setBackground(Color.LIGHT_GRAY);
+					
+					button1.setText("Light gray");
+					button1.setForeground(Color.BLACK);
+					button2.setText("Light gray");
+					button2.setForeground(Color.BLACK);
+					button3.setText("Light gray");
+					button3.setForeground(Color.BLACK);
+					button4.setText("Light gray");
+					button4.setForeground(Color.BLACK);
+				break;
+				case (5):
+					button1.setBackground(Color.WHITE);
+					button2.setBackground(Color.WHITE);
+					button3.setBackground(Color.WHITE);
+					button4.setBackground(Color.WHITE);	
+					
+					button1.setText("White");
+					button1.setForeground(Color.BLACK);
+					button2.setText("White");
+					button2.setForeground(Color.BLACK);
+					button3.setText("White");
+					button3.setForeground(Color.BLACK);
+					button4.setText("White");
+					button4.setForeground(Color.BLACK);
+					
+					button2.setSelected(true);
+					button2.doClick();
+					button3.setSelected(true);
+					button3.doClick();
+				break;
+				case (6):
+					button1.setBackground(Color.BLUE);
+					button2.setBackground(Color.BLUE);
+					button3.setBackground(Color.BLUE);
+					button4.setBackground(Color.BLUE);	
+					
+					button1.setText("Blue");
+					button1.setForeground(Color.WHITE);
+					button2.setText("Blue");
+					button2.setForeground(Color.WHITE);
+					button3.setText("Blue");
+					button3.setForeground(Color.WHITE);
+					button4.setText("Blue");
+					button4.setForeground(Color.WHITE);
+				break;
+				case (7):
+					button1.setBackground(Color.ORANGE);
+					button2.setBackground(Color.ORANGE);
+					button3.setBackground(Color.ORANGE);
+					button4.setBackground(Color.ORANGE);
+					
+					button1.setText("Orange");
+					button1.setForeground(Color.BLACK);
+					button2.setText("Orange");
+					button2.setForeground(Color.BLACK);
+					button3.setText("Orange");
+					button3.setForeground(Color.BLACK);
+					button4.setText("Orange");
+					button4.setForeground(Color.BLACK);
+				break;
+				case (8):
+					button1.setBackground(Color.YELLOW);
+					button2.setBackground(Color.YELLOW);
+					button3.setBackground(Color.YELLOW);
+					button4.setBackground(Color.YELLOW);
+					
+					button1.setText("Yellow");
+					button1.setForeground(Color.BLACK);
+					button2.setText("Yellow");
+					button2.setForeground(Color.BLACK);
+					button3.setText("Yellow");
+					button3.setForeground(Color.BLACK);
+					button4.setText("Yellow");
+					button4.setForeground(Color.BLACK);
+				break;
+				case (9):
+					button1.setBackground(Color.CYAN);
+					button2.setBackground(Color.CYAN);
+					button3.setBackground(Color.CYAN);
+					button4.setBackground(Color.CYAN);	
+					
+					button1.setText("Cyan");
+					button1.setForeground(Color.BLACK);
+					button2.setText("Cyan");
+					button2.setForeground(Color.BLACK);
+					button3.setText("Cyan");
+					button3.setForeground(Color.BLACK);
+					button4.setText("Cyan");
+					button4.setForeground(Color.BLACK);
+				break;
+				case (10):
+					button1.setBackground(Color.RED);
+					button2.setBackground(Color.RED);
+					button3.setBackground(Color.RED);
+					button4.setBackground(Color.RED);	
+					
+					button1.setText("Red");
+					button1.setForeground(Color.BLACK);
+					button2.setText("Red");
+					button2.setForeground(Color.BLACK);
+					button3.setText("Red");
+					button3.setForeground(Color.BLACK);
+					button4.setText("Red");
+					button4.setForeground(Color.BLACK);
+				break;
+				case (11):
+					button1.setBackground(Color.MAGENTA);
+					button2.setBackground(Color.MAGENTA);
+					button3.setBackground(Color.MAGENTA);
+					button4.setBackground(Color.MAGENTA);
+					
+					button1.setText("Magenta");
+					button1.setForeground(Color.BLACK);
+					button2.setText("Magenta");
+					button2.setForeground(Color.BLACK);
+					button3.setText("Magenta");
+					button3.setForeground(Color.BLACK);
+					button4.setText("Magenta");
+					button4.setForeground(Color.BLACK);
+				break;				
+				case (12):
+					button1.setBackground(Color.PINK);
+					button2.setBackground(Color.PINK);
+					button3.setBackground(Color.PINK);
+					button4.setBackground(Color.PINK);
+					
+					button1.setText("Pink");
+					button1.setForeground(Color.BLACK);
+					button2.setText("Pink");
+					button2.setForeground(Color.BLACK);
+					button3.setText("Pink");
+					button3.setForeground(Color.BLACK);
+					button4.setText("Pink");
+					button4.setForeground(Color.BLACK);
+				break;		
+			}
+				
+			oBackPanel.add(button1);
+			xBackPanel.add(button2);
+			oFrontPanel.add(button3);
+			xFrontPanel.add(button4);				
+		}
+		
+		JPanel mainPanel=new JPanel(new BorderLayout());
+		mainPanel.add(panel, BorderLayout.CENTER);
+		mainPanel.add(resetSwitch, BorderLayout.SOUTH);
+		setUpResetSwitch();
+		
+		return mainPanel;
+	}
+	
+	public class TicTacToeListenerButton implements ActionListener
+	{		
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				JButton button=(JButton) e.getSource();
+				if (button.getText()!="") {}
+				else if (crossOrNought==true)
+				{
+					roundInfo.setText(" O turn ");
+					button.setFont(new Font("Mistral", Font.BOLD, fontSize*4));
+					button.setBackground(xBackColour);
+					button.setForeground(xFrontColour);
+					button.setText("X");
+					button.setFocusPainted(false);
+					crossOrNought=false;
+					round=((byte)(round+1));
+					//ticTacToeButtons[ii][jj].setEnabled(false);
+				}
+				else
+				{
+					roundInfo.setText(" X turn ");
+					button.setFont(new Font("Mistral", Font.BOLD, fontSize*4));
+					button.setText("O");
+					button.setBackground(oBackColour);
+					button.setForeground(oFrontColour);
+					crossOrNought=true;
+					round=((byte)(round+1));
+					button.setFocusPainted(false);
+					//ticTacToeButtons[ii][jj].setEnabled(false);
+				}
+				
+				if (round>=5)
+				{
+					if (ticTacToeButtons[0][0].getText()!="") {
+					if (ticTacToeButtons[0][0].getText()==ticTacToeButtons[0][1].getText() && ticTacToeButtons[0][1].getText()==ticTacToeButtons[0][2].getText())
+					{
+						ticTacToeButtons[0][0].setBackground(Color.GREEN);
+						ticTacToeButtons[0][1].setBackground(Color.GREEN);
+						ticTacToeButtons[0][2].setBackground(Color.GREEN);
+						victory=true;
+					}
+					if (ticTacToeButtons[0][0].getText()==ticTacToeButtons[1][0].getText() && ticTacToeButtons[1][0].getText()==ticTacToeButtons[2][0].getText())
+					{
+						ticTacToeButtons[0][0].setBackground(Color.GREEN);
+						ticTacToeButtons[1][0].setBackground(Color.GREEN);
+						ticTacToeButtons[2][0].setBackground(Color.GREEN);
+						victory=true;
+					}
+					if (ticTacToeButtons[0][0].getText()==ticTacToeButtons[1][1].getText() && ticTacToeButtons[1][1].getText()==ticTacToeButtons[2][2].getText())
+					{
+						ticTacToeButtons[0][0].setBackground(Color.GREEN);
+						ticTacToeButtons[1][1].setBackground(Color.GREEN);
+						ticTacToeButtons[2][2].setBackground(Color.GREEN);
+						victory=true;
+					}}
+					if (ticTacToeButtons[0][1].getText()!="") {
+					if (ticTacToeButtons[0][1].getText()==ticTacToeButtons[1][1].getText() && ticTacToeButtons[1][1].getText()==ticTacToeButtons[2][1].getText())
+					{
+						ticTacToeButtons[0][1].setBackground(Color.GREEN);
+						ticTacToeButtons[1][1].setBackground(Color.GREEN);
+						ticTacToeButtons[2][1].setBackground(Color.GREEN);
+						victory=true;
+					}}
+					if (ticTacToeButtons[0][2].getText()!="") {
+					if (ticTacToeButtons[0][2].getText()==ticTacToeButtons[1][1].getText() && ticTacToeButtons[1][1].getText()==ticTacToeButtons[2][0].getText())
+					{
+						ticTacToeButtons[0][2].setBackground(Color.GREEN);
+						ticTacToeButtons[1][1].setBackground(Color.GREEN);
+						ticTacToeButtons[2][0].setBackground(Color.GREEN);
+						victory=true;
+					}				
+					if (ticTacToeButtons[0][2].getText()==ticTacToeButtons[1][2].getText() && ticTacToeButtons[1][2].getText()==ticTacToeButtons[2][2].getText())
+					{
+						ticTacToeButtons[0][2].setBackground(Color.GREEN);
+						ticTacToeButtons[1][2].setBackground(Color.GREEN);
+						ticTacToeButtons[2][2].setBackground(Color.GREEN);
+						victory=true;
+					}}
+					if (ticTacToeButtons[1][0].getText()!="") {
+					if (ticTacToeButtons[1][0].getText()==ticTacToeButtons[1][1].getText() && ticTacToeButtons[1][1].getText()==ticTacToeButtons[1][2].getText())
+					{
+						ticTacToeButtons[1][0].setBackground(Color.GREEN);
+						ticTacToeButtons[1][1].setBackground(Color.GREEN);
+						ticTacToeButtons[1][2].setBackground(Color.GREEN);
+						victory=true;
+					}}
+					if (ticTacToeButtons[2][0].getText()!="") {
+					if (ticTacToeButtons[2][0].getText()==ticTacToeButtons[2][1].getText() && ticTacToeButtons[2][1].getText()==ticTacToeButtons[2][2].getText())
+					{
+						ticTacToeButtons[2][0].setBackground(Color.GREEN);
+						ticTacToeButtons[2][1].setBackground(Color.GREEN);
+						ticTacToeButtons[2][2].setBackground(Color.GREEN);
+						victory=true;
+					}}
+				}
+				
+				if (victory==true)
+				{
+					if (crossOrNought==true)
+					{
+						roundInfo.setText(" O wins ");
+						oWins++;
+						scoreInfo.setText("X "+xWins+":"+oWins+" O");
+					}
+					else
+					{
+						roundInfo.setText(" X wins ");
+						xWins++;
+						scoreInfo.setText("X "+xWins+":"+oWins+" O");
+					}
+					for (byte x=0; x<3; x++)
+					{
+						for (byte y=0; y<3; y++)
+						{
+							if (ticTacToeButtons[x][y].getBackground()!=Color.GREEN);
+							ticTacToeButtons[x][y].setEnabled(false);
+						}
+					}
+					refreshButton.setEnabled(true);
+				}
+				else if (round==9 && victory==false)
+				{
+					roundInfo.setText(" Draw ");
+					for (byte x=0; x<3; x++)
+					{
+						for (byte y=0; y<3; y++)
+						{
+							ticTacToeButtons[x][y].setBackground(Color.LIGHT_GRAY);
+							ticTacToeButtons[x][y].setEnabled(false);
+						}
+					}	
+					refreshButton.setEnabled(true);
+				}
+			}
+		}
+	
+	public class OBackButtonActionListener implements ActionListener
+	{
+		@Override
+		public void actionPerformed(ActionEvent e)
+		{
+			JRadioButton button=(JRadioButton) e.getSource();
+			oBackColour=button.getBackground();
+			
+			for (byte i=0; i<3; i++)
+			{
+				for (byte j=0; j<3; j++)
+				{
+					if (ticTacToeButtons[i][j].getText()=="O" && ticTacToeButtons[i][j].getBackground()!=Color.GREEN)
+					ticTacToeButtons[i][j].setBackground(oBackColour);
+				}
+			}
+		}
+	}
+	
+	public class XBackButtonActionListener implements ActionListener
+	{
+		@Override
+		public void actionPerformed(ActionEvent e)
+		{
+			JRadioButton button=(JRadioButton) e.getSource();
+			xBackColour=button.getBackground();
+			
+			for (byte i=0; i<3; i++)
+			{
+				for (byte j=0; j<3; j++)
+				{
+					if (ticTacToeButtons[i][j].getText()=="X" && ticTacToeButtons[i][j].getBackground()!=Color.GREEN)
+					ticTacToeButtons[i][j].setBackground(xBackColour);
+				}
+			}
+		}
+	}
+	
+	public class OFrontButtonActionListener implements ActionListener
+	{
+		@Override
+		public void actionPerformed(ActionEvent e)
+		{
+			JRadioButton button=(JRadioButton) e.getSource();
+			oFrontColour=button.getBackground();	
+			
+			for (byte i=0; i<3; i++)
+			{
+				for (byte j=0; j<3; j++)
+				{
+					if (ticTacToeButtons[i][j].getText()=="O")
+					ticTacToeButtons[i][j].setForeground(oFrontColour);
+				}
+			}
+		}
+	}
+	
+	public class XFrontButtonActionListener implements ActionListener
+	{
+		@Override
+		public void actionPerformed(ActionEvent e)
+		{
+			JRadioButton button=(JRadioButton) e.getSource();
+			xFrontColour=button.getBackground();	
+			
+			for (byte i=0; i<3; i++)
+			{
+				for (byte j=0; j<3; j++)
+				{
+					if (ticTacToeButtons[i][j].getText()=="X")
+					ticTacToeButtons[i][j].setForeground(xFrontColour);
+				}
+			}
+		}
+	}
+	
+	public class RefreshButtonListener implements ActionListener
+	{
+		@Override
+		public void actionPerformed(ActionEvent e)
+		{
+			refresh();
+		}		
+	}
+	
+	public class ResetButtonListener implements ActionListener
+	{
+		@Override
+		public void actionPerformed(ActionEvent e)
+		{
+			reset();
+			refresh();						
+		}
+	}
+	
+	public class ResetSwitchListener implements ActionListener
+	{
+		@Override
+		public void actionPerformed(ActionEvent e)
+		{
+			JToggleButton button=(JToggleButton)e.getSource();
+			if (button.isSelected())
+			{
+				resetButton.setEnabled(true);
+				button.setText(" RESET is ON ");
+			}
+			else
+			{
+				resetButton.setEnabled(false);
+				button.setText(" RESET is OFF ");
+			}
+			button.setFocusPainted(false);
+		}
+	}
+	
+	private void refresh()
+	{
+		for (byte x=0; x<3; x++)
+		{
+			for (byte y=0; y<3; y++)
+			{
+				ticTacToeButtons[x][y].setBackground(Color.LIGHT_GRAY);
+				ticTacToeButtons[x][y].setEnabled(true);
+				ticTacToeButtons[x][y].setText("");
+				
+			}
+		}
+		round=((byte)0);
+		victory=false;
+		roundInfo.setText("");
+		crossOrNought=new Random().nextBoolean();
+		if (crossOrNought==true)
+		{
+			roundInfo.setText(" X turn ");
+		}
+		else roundInfo.setText(" O turn ");
+		refreshButton.setEnabled(false);
+	}
+	
+	private void reset()
+	{
+		oWins=0;
+		xWins=0;
+		scoreInfo.setText("X "+xWins+":"+oWins+" O");
+		resetSwitch.doClick();
+		xBackColour=Color.WHITE;
+		oBackColour=Color.BLACK;
+		xFrontColour=Color.BLACK;
+		oFrontColour=Color.WHITE;
+		roundInfo.setText("X "+xWins+":"+oWins+" O");
+	}
+	
+	private void buttonBasicSetup(AbstractButton button)
+	{
+		button.setOpaque(true);
+		button.setBackground(new Color(0, 240, 150));
+		button.setForeground(new Color(40,0,80));
+		button.setBorder(smallBorder);
+		button.setFont(new Font("Monospaced", Font.BOLD, fontSize));
+	}
+	
+	private void setUpRefreshButton()
+	{
+		refreshButton.addActionListener(new RefreshButtonListener());
+		buttonBasicSetup(refreshButton);
+		refreshButton.setEnabled(false);		
+	}
+	
+	private void setUpResetButton()
+	{
+		resetButton.addActionListener(new ResetButtonListener());
+		buttonBasicSetup(resetButton);
+		resetButton.setEnabled(false);
+	}
+	
+	private void setUpResetSwitch()
+	{
+		resetSwitch.addActionListener(new ResetSwitchListener());
+		buttonBasicSetup(resetSwitch);
+	}
+	
+	private void setUpTTTButtons()
+	{
+		for (byte i=0; i<3; i++)
+		{
+			for (byte j=0; j<3; j++)
+			{							
+				ticTacToeButtons[i][j]=new JButton();
+				ticTacToeButtons[i][j].setBorder(smallBorder);
+				ticTacToeButtons[i][j].setText("");
+				ticTacToeButtons[i][j].setBackground(Color.LIGHT_GRAY);
+				ticTacToeButtons[i][j].addActionListener(new TicTacToeListenerButton());				
+			}
+		}
+	}
+	
+	private JLabel roundInfoArea()
+	{
+		if (crossOrNought==true) roundInfo=new JLabel(" X begins ");
+		else roundInfo=new JLabel(" O begins ");
+		roundInfo.setOpaque(true);
+		roundInfo.setBorder(smallBorder);		
+		roundInfo.setHorizontalAlignment(JLabel.CENTER);
+		roundInfo.setBackground(new Color(0, 240, 150));
+		roundInfo.setForeground(new Color(40,0,80));
+		
+		return roundInfo;
+	}
+	
+	private JLabel scoreInfoArea()
+	{
+		scoreInfo=new JLabel("X "+xWins+":"+oWins+" O");
+		scoreInfo.setOpaque(true);
+		scoreInfo.setBorder(smallBorder);		
+		scoreInfo.setHorizontalAlignment(JLabel.CENTER);
+		scoreInfo.setBackground(new Color(0, 240, 150));
+		scoreInfo.setForeground(new Color(40,0,80));
+		
+		return scoreInfo;
+	}
+}
