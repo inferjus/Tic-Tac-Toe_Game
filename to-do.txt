@@ -1,0 +1,3 @@
+TODO List:
+-add custom icon;
+-make code easier to read.
